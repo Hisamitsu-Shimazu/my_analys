@@ -2,10 +2,10 @@
 
 .ipynb_checkpoints
 
-# データフォルダの無視
-
-data/
-
 # 無視しないファイル
 
 !data/.gitkeep
+
+# データフォルダの無視
+
+data/
