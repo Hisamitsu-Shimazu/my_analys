@@ -1,0 +1,7 @@
+# checkpointファイルの無視
+
+.ipynb_checkpoints
+
+# データフォルダの無視
+
+data/
