@@ -2,10 +2,6 @@
 
 .ipynb_checkpoints
 
-# 無視しないファイル
+# sample.csv
 
-!data/.gitkeep
-
-# データフォルダの無視
-
-data/*.*
+data/sample.csv
