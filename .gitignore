@@ -1,7 +1,7 @@
 # checkpointファイルの無視
 
 .ipynb_checkpoints
-__pycache__
+script/module/__pycache__
 
 # sample.csv
 
