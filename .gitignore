@@ -1,0 +1,12 @@
+# checkpointファイルの無視
+
+.ipynb_checkpoints
+__pycache__
+
+# sample.csv
+
+data/sample.csv
+
+# xlsxの無視
+
+output/*.xlsx
