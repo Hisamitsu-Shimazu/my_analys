@@ -1,6 +1,7 @@
 # checkpointファイルの無視
 
 .ipynb_checkpoints
+__pycache__
 
 # sample.csv
 
