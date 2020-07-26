@@ -1,6 +1,18 @@
 from openpyxl.styles import PatternFill, Border, Side, Alignment, Protection, Font
 
 style = {
+    # 普通
+    'normal' : [
+        Font(
+        ),
+        PatternFill(
+        ),
+        Border(
+        ),
+        Alignment(
+        )
+    ],
+    
     # タイトル
     'style_title' : [
         Font(
@@ -14,7 +26,7 @@ style = {
             
         ),
         Alignment(
-            
+            vertical = 'center'
         )
     ],
     
@@ -27,7 +39,7 @@ style = {
         ),
         PatternFill(
             'solid',
-            fgColor='4682b4'
+            fgColor='badcad'
         ),
         Border(
             left=Side(border_style='thin',
@@ -39,9 +51,10 @@ style = {
             bottom=Side(border_style='thin',
                        color='000000')
         ),
-        Alignment(horizontal = 'center', 
-                  vertical = 'center',
-                  wrap_text = False
+        Alignment(
+            horizontal = 'center', 
+            vertical = 'center',
+            wrap_text = False
         )
     ],
     # 表
@@ -65,9 +78,37 @@ style = {
             bottom=Side(border_style='thin',
                        color='000000')
         ),
-        Alignment(horizontal = 'center', 
-                  vertical = 'center',
-                  wrap_text = False
+        Alignment(
+            horizontal = 'center', 
+            vertical = 'center',
+            wrap_text = False
         )
-    ]   
+    ],
+    # 画像
+    'style_img' : [
+        Font(
+            bold = False,
+            underline='none',
+            color = '000000'
+        ),
+        PatternFill(
+            'solid',
+            fgColor='ffffff'
+        ),
+        Border(
+            left=Side(border_style='thin',
+                       color='000000'),
+            right=Side(border_style='thin',
+                       color='000000'),
+            top=Side(border_style='thin',
+                       color='000000'),
+            bottom=Side(border_style='thin',
+                       color='000000')
+        ),
+        Alignment(
+            horizontal = 'center', 
+            vertical = 'center',
+            wrap_text = False
+        )
+    ]
 }
