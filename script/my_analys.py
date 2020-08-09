@@ -123,9 +123,10 @@ def create_first_sheet(wb, file_name:str, df:pd.DataFrame):
     ----------
     ws : openpyxl.workbook
         ワークブック
-        
     file_name : str
         分析対象のファイル名
+    df : pd.DataFrame
+        分析対象のデータフレーム
     
     '''
     # 最初のページ
@@ -177,6 +178,8 @@ def create_second_sheet(wb, df:pd.DataFrame):
     ----------
     wb : openpyxl.workbook 
         ワークブック
+    df : pd.DataFrame
+        分析対象のデータフレーム
         
     '''
     
@@ -236,6 +239,17 @@ def create_second_sheet(wb, df:pd.DataFrame):
     ws.column_dimensions['O'].width = 30
 
 def create_data_show_sheet(wb, df:pd.DataFrame):
+    '''
+    データ例を表示するシート
+    
+    Paramaters
+    ----------
+    wb : openpyxl
+        作成するwb
+    df : pd.DataFrame
+        分析対象のデータフレーム
+    
+    '''
     # データ例を見る
     ws = wb.create_sheet(title='データ例')
     ws.sheet_properties.tabColor = 'f0e68c'
@@ -349,6 +363,7 @@ def bar_plot(d):
 def hist_plot(d):
     fig = plt.figure(figsize=(6,3))
     ax = fig.add_subplot(111)
+    ax.set_title(d.name)
     ax.hist(d, alpha=0.6, bins=50)
     ax.set_ylabel('Frequency')
     ax.set_xlabel('value')
@@ -360,6 +375,8 @@ def too_much_nuniques(d):
     fig = plt.figure(figsize=(6,3))
     ax = fig.add_subplot(111)
     ax.set_title(d.name)
+    ax.set_ylabel('Count')
+    ax.set_xlabel('Category')
     ax.text(0.5, 0.5, 'nunique > 30', ha='center', va='center')
     ax.grid(linestyle='--', alpha=0.6)
     ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
