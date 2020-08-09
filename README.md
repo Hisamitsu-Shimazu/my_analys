@@ -1,17 +1,17 @@
 # README
 
 # フォルダ構成
-.
-├data<br>
-├output<br>
-│　　└img<br>
-├script<br>
-│　　├module<br>
-│　　│　　├edit_excel.py　　# openpyxl操作用<br>
-│　　│　　└excel_style.py　　# セルスタイル設定<br>
-│　　└my_analys.py　　# mainスクリプト<br>
-├my_analys.bat　　# 実行用バッチファイル<br>
-└README.md<br>
+.<br>
+├ data　データファイル格納用<br>
+├ output　集計結果出力先<br>
+│　　└ img<br>
+├ script<br>
+│　　├ module<br>
+│　　│　　├ edit_excel.py　　# openpyxl操作用<br>
+│　　│　　└ excel_style.py　　# セルスタイル設定<br>
+│　　└ my_analys.py　　# mainスクリプト<br>
+├ my_analys.bat　　# 実行用バッチファイル<br>
+└ README.md<br>
 
 # 実行手順
 1.パスの設定
