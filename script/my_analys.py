@@ -13,12 +13,12 @@ warnings.simplefilter('ignore')
 
 # 自作モジュールの読み込み
 sys.path.append('./module')
-import edit_excel as ee
+import module.edit_excel as ee
 
 # 各種設定
-input_dir = Path('../data/')
-img_dir = Path('../output/img/')
-output_dir = Path('../output/')
+input_dir = Path('./data/')
+img_dir = Path('./output/img/')
+output_dir = Path('./output/')
 
 def main():
     ## 実行部

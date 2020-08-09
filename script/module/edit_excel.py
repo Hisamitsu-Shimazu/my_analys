@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import openpyxl
 from openpyxl.utils import get_column_letter
-import excel_style
+import module.excel_style as excel_style
 from pathlib import Path
 import math
 from openpyxl.styles import PatternFill, Border, Side, Alignment, Protection, Font
