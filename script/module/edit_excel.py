@@ -5,14 +5,32 @@ from openpyxl.utils import get_column_letter
 import excel_style
 from pathlib import Path
 import math
+from openpyxl.styles import PatternFill, Border, Side, Alignment, Protection, Font
 
 # styleの設定
 def set_style(cell, s):
+    '''
+    wsのcellに対してstyleの設定を行う。
+    
+    Paramaters
+    ----------
+    cell : openpyxl.ws.cell
+        設定対象のセル
+    s : str
+        styleを表す文字列
+        styleに関してはexcel_style.pyに記載
+    
+    '''
     cell.font = excel_style.style[s][0]
     cell.fill = excel_style.style[s][1]
     cell.border = excel_style.style[s][2]
     cell.alignment = excel_style.style[s][3]
-
+    
+# 値とstyleを設定
+def set_cell(ws, cell:tuple, value=None, style='normal'):
+    ws.cell(cell[0], cell[1]).value = value
+    set_style(ws.cell(cell[0], cell[1]), style)
+    
 # データフレームの挿入
 def put_dataframe(ws, df, start:tuple, mode='normal'):
     # 左上のセル
@@ -29,7 +47,7 @@ def put_dataframe(ws, df, start:tuple, mode='normal'):
     # 値代入
     for i in range(df.shape[0]):
         for j in range(df.shape[1]):
-            if math.isnan(df.iat[i,j]):
+            if df.isnull().iat[i,j]:
                 if mode == 'describe':
                     set_cell(ws, cell=(start[0]+1+i, start[1]+1+j), value='-', style='style_grid')
                 else :
@@ -58,13 +76,8 @@ def get_letter(r, c):
     return openpyxl.utils.get_column_letter(c)+str(r)
             
 # 画像貼り付け
-def put_img(ws, fig, c, start:tuple):
-    img_dir = Path('../output/img/')
+def put_img(ws, fig, c, start:tuple, img_dir):
     fig.savefig(img_dir/f'{c}_fig.png', transparent=True, bbox_inches='tight')
     img = openpyxl.drawing.image.Image(img_dir/f'{c}_fig.png')
     ws.add_image(img, get_letter(start[0], start[1]))
     
-# 値とstyleを設定
-def set_cell(ws, cell:tuple, value=None, style='normal'):
-    ws.cell(cell[0], cell[1]).value = value
-    set_style(ws.cell(cell[0], cell[1]), style)

@@ -4,6 +4,7 @@ import sys
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import japanize_matplotlib
 import openpyxl
 from openpyxl.formatting.rule import DataBarRule
 from pathlib import Path
@@ -16,6 +17,7 @@ import edit_excel as ee
 
 # 各種設定
 input_dir = Path('../data/')
+img_dir = Path('../output/img/')
 output_dir = Path('../output/')
 
 def main():
@@ -62,6 +64,7 @@ def main():
         # ワークブックの保存
         wb.save(output_dir/(file_name.split('.')[0]+'.xlsx'))
         print('# {} has saved.'.format(file_name.split('.')[0]+'.xlsx'))
+        
         
 def read_data(file_name : str):
     '''
@@ -144,13 +147,19 @@ def create_first_sheet(wb, file_name:str, df:pd.DataFrame):
     for i, c in enumerate(['No.', '論理名', '物理名', '解釈', '備考']):
         ee.set_cell(ws, cell=(4, 2+i), value=c, style='style_header')
     
+    f_name = file_name.split('.')[0]+'.xlsx'
     ## インデックス
     for i, c in enumerate(df.columns):
         ee.set_cell(ws, cell=(5+i, 2), value=i, style='style_header')
-        ee.set_cell(ws, cell=(5+i, 3), value=c, style='style_grid')
+        ee.set_cell(ws, cell=(5+i, 3), value=c, style='style_summary')
         ee.set_cell(ws, cell=(5+i, 4), style='style_grid')
         ee.set_cell(ws, cell=(5+i, 5), style='style_grid')
         ee.set_cell(ws, cell=(5+i, 6), style='style_grid')
+        # ハイパーリンク
+        ws[ee.get_letter(5+i, 3)].hyperlink = f'{f_name}#{c}!A1'
+        
+    # ウィンドウ枠の固定
+    ws.freeze_panes = 'C5'
         
     # 幅、高さ調整
     ws.row_dimensions[1].height = 5
@@ -234,9 +243,15 @@ def create_data_show_sheet(wb, df:pd.DataFrame):
     ee.set_cell(ws, cell=(2, 2), value='データ例', style='style_title')
     
     tmp1 = df.head(20)
-    tmp2 = pd.DataFrame({'...' : ['...'] * len(df.columns)}, columns=df.columns)
-    tmp3 = df.tail(20)
-    ee.put_dataframe(ws, pd.concat([tmp1, tmp2, tmp3]), start=(3,2))
+    tmp2 = df.tail(20)
+    ee.put_dataframe(ws, tmp1, start=(3,2))
+    ee.put_dataframe(ws, tmp2, start=(25,2))
+    
+    # 高さ幅調整
+    ee.adjust_width(ws)
+    ws.freeze_panes = 'A4'
+    ws.row_dimensions[1].height = 5
+    ws.column_dimensions['A'].width = 1
     
 def create_column_sheet(wb, d:pd.Series):
     '''
@@ -250,7 +265,7 @@ def create_column_sheet(wb, d:pd.Series):
         対象のカラムのシリーズ
     
     '''
-    # カラムごとのページ
+    # シート作成
     ws = wb.create_sheet(title=d.name)
     ws.sheet_properties.tabColor = 'f0e68c'
     
@@ -270,42 +285,30 @@ def create_column_sheet(wb, d:pd.Series):
         ee.set_cell(ws, cell=(3, 7), value='なし', style='style_grid')
     
     # 可視化
-    fig = plt.figure(figsize=(7,4))
-    ax = fig.add_subplot(111)
-    plt.title(d.name)
+    
     if d.dtype == object:
         if d.nunique()<=30:
             # 棒グラフ、帯グラフ
-            tmp = d.fillna('欠損').value_counts()
-            plt.bar(tmp.index, tmp.values, alpha=0.6)
-            plt.xticks(rotation=90)
+            fig = bar_plot(d)
         else:
-            plt.text(0.5, 0.5, 'nunique > 30', ha='center', va='center')
-        plt.ylabel('Count')
-        plt.xlabel('Category')
+            # ﾕﾆｰｸ数過多
+            fig = too_much_nuniques(d)
+        
     else :
         if d.nunique()<=30:
-            # 棒グラフ、帯グラフ
-            tmp = d.astype(str).fillna('欠損').value_counts()
-            plt.bar(tmp.index, tmp.values, alpha=0.6)
-            plt.ylabel('Count')
-            plt.xlabel('Category')
-            plt.xticks(rotation=90)
+            # 棒グラフ
+            fig = bar_plot(d)
         else:
             # ヒストグラム
-            plt.hist(d, alpha=0.6, bins=50)
-            plt.ylabel('Frequency')
-            plt.xlabel('value')
-    plt.grid(linestyle='--', alpha=0.6)
-    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
+            fig = hist_plot(d)
     
     ## fig貼り付け
-    ee.put_img(ws, fig, d.name, (4,2))
+    ee.put_img(ws, fig, d.name, (4,2), img_dir)
     ee.set_style(ws.cell(4,2), 'style_grid')
-    ws.merge_cells('B4:G25')
+    ws.merge_cells('B4:G22')
     
     # 欠損率可視化
-    fig = plt.figure(figsize=(4.4,4.4))
+    fig = plt.figure(figsize=(3.5, 3.5))
     plt.title('null component')
     plt.pie(
         [len(d)-d.isnull().sum(), d.isnull().sum()],
@@ -315,19 +318,55 @@ def create_column_sheet(wb, d:pd.Series):
         autopct="%1.3f%%",
         wedgeprops={'linewidth': 1, 'edgecolor':"white"}
     )
-    plt.legend()
+    plt.legend(frameon=False, loc='upper left', handlelength=1, handletextpad=0.2, labelspacing=0.2)
     
     ## fig貼り付け
-    ee.put_img(ws, fig, f'{d.name}_null', (4,8))
+    ee.put_img(ws, fig, f'{d.name}_null', (4,8), img_dir)
     ee.set_style(ws.cell(4,8), 'style_grid')
-    ws.merge_cells('H4:L25')
+    ws.merge_cells('H4:K22')
     
     # 幅、高さ調整
     ws.row_dimensions[1].height = 5
     ws.column_dimensions['A'].width = 1
-    ws.column_dimensions['C'].width = 21
-    ws.column_dimensions['E'].width = 21
+    ws.column_dimensions['C'].width = 19
+    ws.column_dimensions['E'].width = 19
     
+def bar_plot(d):
+    fig = plt.figure(figsize=(6,3))
+    ax = fig.add_subplot(111)
+    ax.set_title(d.name)
+    tmp = d.astype(str).fillna('欠損').value_counts().sort_index()
+    ax.bar(tmp.index, tmp.values, alpha=0.6)
+    ax.set_ylabel('Count')
+    ax.set_xlabel('Category')
+    plt.xticks(rotation=90)
+    ax.set_ylabel('Count')
+    ax.set_xlabel('Category')
+    ax.grid(linestyle='--', alpha=0.6)
+    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
+    return fig
+
+def hist_plot(d):
+    fig = plt.figure(figsize=(6,3))
+    ax = fig.add_subplot(111)
+    ax.hist(d, alpha=0.6, bins=50)
+    ax.set_ylabel('Frequency')
+    ax.set_xlabel('value')
+    ax.grid(linestyle='--', alpha=0.6)
+    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
+    return fig
+
+def too_much_nuniques(d):
+    fig = plt.figure(figsize=(6,3))
+    ax = fig.add_subplot(111)
+    ax.set_title(d.name)
+    ax.text(0.5, 0.5, 'nunique > 30', ha='center', va='center')
+    ax.grid(linestyle='--', alpha=0.6)
+    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
+    return fig
     
 if __name__ == "__main__":
+    '''
+    main関数実行
+    '''
     main()

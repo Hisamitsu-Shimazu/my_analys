@@ -10,3 +10,4 @@ data/sample.csv
 # xlsxの無視
 
 output/*.xlsx
+output/img/*.png
