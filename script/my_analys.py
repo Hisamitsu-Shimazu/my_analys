@@ -298,23 +298,33 @@ def create_column_sheet(wb, d:pd.Series):
     else :
         ee.set_cell(ws, cell=(3, 7), value='なし', style='style_grid')
     
-    # 可視化
+    # 可視化、情報整理
     
     if d.dtype == object:
         if d.nunique()<=30:
             # 棒グラフ、帯グラフ
-            fig = bar_plot(d)
+            fig, tmp = bar_plot(d)
+            infomation = category_info(d)
         else:
             # ﾕﾆｰｸ数過多
-            fig = too_much_nuniques(d)
+            fig, tmp = too_much_nuniques(d)
+            infomation = category_info(d)
         
     else :
         if d.nunique()<=30:
             # 棒グラフ
-            fig = bar_plot(d)
+            fig, tmp = bar_plot(d)
+            infomation = category_info(d)
         else:
             # ヒストグラム
-            fig = hist_plot(d)
+            fig, tmp = hist_plot(d)
+            infomation = num_info(d)
+            
+    # 度数分布表貼り付け
+    ee.put_dataframe(ws, tmp, (23,2))   
+    
+    # infomation貼り付け
+    ee.put_dataframe(ws, infomation, (23, 5))
     
     ## fig貼り付け
     ee.put_img(ws, fig, d.name, (4,2), img_dir)
@@ -358,18 +368,34 @@ def bar_plot(d):
     ax.set_xlabel('Category')
     ax.grid(linestyle='--', alpha=0.6)
     ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
-    return fig
+    
+    # 度数分布表作成
+    tmp = pd.DataFrame(d.value_counts()).reset_index()
+    
+    return fig, tmp
 
 def hist_plot(d):
     fig = plt.figure(figsize=(6,3))
     ax = fig.add_subplot(111)
     ax.set_title(d.name)
-    ax.hist(d, alpha=0.6, bins=50)
+    count, border, _ = ax.hist(d, alpha=0.6, bins=50)
+    b,t = ax.get_ylim()
+    ax.vlines(d.mean(), b, t, linestyle='--', color='tab:red', alpha=0.6, label='mean')
+    ax.vlines(d.median(), b, t, linestyle='-', color='tab:red', alpha=0.6, label='median')
+    ax.set_ylim(b, t)
     ax.set_ylabel('Frequency')
     ax.set_xlabel('value')
     ax.grid(linestyle='--', alpha=0.6)
+    ax.legend()
     ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
-    return fig
+    
+    # 度数分布表作成
+    tmp = pd.DataFrame({
+        '階級値' : border[:-1],
+        '度数' : count
+    })
+    
+    return fig, tmp
 
 def too_much_nuniques(d):
     fig = plt.figure(figsize=(6,3))
@@ -380,7 +406,27 @@ def too_much_nuniques(d):
     ax.text(0.5, 0.5, 'nunique > 30', ha='center', va='center')
     ax.grid(linestyle='--', alpha=0.6)
     ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
-    return fig
+    
+    # 度数分布表作成
+    tmp = pd.DataFrame(d.value_counts()).reset_index()
+    return fig, tmp
+
+def category_info(d):
+    df = pd.DataFrame([
+        [len(d)-d.isnull().sum()],
+        [d.nunique()]
+    ], index=['行数', 'ﾕﾆｰｸ数'], columns=['値'])
+    return df
+
+def num_info(d):
+    df = pd.DataFrame([
+        [len(d)-d.isnull().sum()],
+        [d.mean()],
+        [d.median()],
+        [d.max()],
+        [d.min()]
+    ], index = ['行数', '平均', '中央値', '最大値', '最小値'], columns=['値'])
+    return df
     
 if __name__ == "__main__":
     '''
